@@ -1,5 +1,0 @@
-message: "FALSE"
-whisper: "FALSE"
-slack: "FALSE"
-slack_webhook: "https://hooks.slack.com/services/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"
-trace: "FALSE"
