@@ -1,0 +1,105 @@
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1, shrink-to-fit=no')
+    link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css', integrity='sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm', crossorigin='anonymous')
+    title= title
+  body
+    .container
+      .row
+        .col-md-3
+          img(src="seesomething.jpg" height=200)
+        .col-md-9
+          h1 See Something, Say Something
+      hr
+      .row
+        .col-md-2
+          a(href="/config")
+            | Configuration
+        .col-md-2
+          a(href="/log")
+            | Logs
+        .col-md-2
+          a(href="https://github.com/howethomas/seesomething")
+            | Repo
+      hr
+      .row
+        .col-md-12
+          h2 Summary
+          p
+            | This automation looks for particular inbound messages. When one
+            | matches the rules, it will respond.  You can control if the
+            | response goes back to the customer, whispered to an agent, or
+            | is posted on Slack.
+      .row
+        .col-md-6
+          h2 Setup
+          ol
+            li Install this automation on a web server, or use an existing installation (ex: https://seesomething.tendigittext.com)
+            li Add this automation URL as an observer in the
+              a(href="https://qa.digits.holdings/settings/team/#Automations")
+                | team settings
+              section in the VHT Messaging Portal
+            li
+              a(href="/config")
+                | Configure the automation
+            li
+              | Send messages into the a network handle attached to the team with this automation
+              | enabled. Look for the appropriate responses in the end user, the VHT messaging
+              | portal or in the &nbsp
+              a(href="/log")
+                | Logs
+        .col-md-6
+          h2 Configuration
+          ul
+            li
+              strong Message:
+              | Set to "TRUE" to enable responses back to customers,
+              | currently configured as "#{config.message}"
+            li
+              strong Whisper:
+              | Set to "TRUE" to enable whispers to the agents,
+              | currently configured as "#{config.whisper}"
+            li
+              strong Slack:
+              | Set to TRUE to send this activity to channel with the webhook URL,
+              | currently configured as "#{config.slack}"
+            li
+              strong Slack Webhook:
+              | Set to the slack webhook URL, provided when you set this up in Slack
+              | currently configured as "#{config.slack_webhook}"
+      hr
+      .row
+        .col-md-6
+          h2  Responses
+            table.table
+              thead.thead-dark
+                tr
+                  th inboundText
+                  th Response
+                  th
+              tbody
+                for response in responses
+                  tr
+                    td= response.inputText
+                    td= response.response
+                    td
+                      a(href="/delete/"+response._id)
+                        | x
+        .col-md-6
+          h2 Add a New Response
+          form(action="/new_response" method="POST")
+            .form-group
+              label(for='inputText') Input Text
+              input#inputText.form-control(type='text', name='inputText', aria-describedby='inputTextHelp', placeholder='Enter input text')
+              label(for='response') Response
+              input#response.form-control(type='text', name='response', aria-describedby='responseHelp', placeholder='Enter response')
+              button.btn.btn-primary(type='submit') Add
+
+
+
+    // Optional JavaScript
+    // jQuery first, then Popper.js, then Bootstrap JS
+    script(src='https://code.jquery.com/jquery-3.2.1.min.js', crossorigin='anonymous')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js', integrity='sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q', crossorigin='anonymous')
+    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js', integrity='sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl', crossorigin='anonymous')

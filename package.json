@@ -1,0 +1,26 @@
+{
+  "name": "seesomething",
+  "version": "1.0.0",
+  "description": "An automation to respond to inbound messages from people who won't talk",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/howethomas/seesomething.git"
+  },
+  "author": "Thomas Howe & Matthew Jarosz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/howethomas/seesomething/issues"
+  },
+  "homepage": "https://github.com/howethomas/seesomething#readme",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "express": "^4.17.1",
+    "faker": "^4.1.0",
+    "greenbot-sdk": "^1.0.4",
+    "slack": "^11.0.2"
+  }
+}
