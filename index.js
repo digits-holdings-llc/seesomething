@@ -22,7 +22,7 @@ app.set('views', './views')
 app.use(express.static('public'))
 botSDK.init(app, http)
 
-async function getResponse(inputText) {
+async function getResponse(inputText, config) {
   const client = await MongoClient.connect(mongoURL).catch(err => {botSDK.log("Mongo Client Connect error", err)})
   try {
     const db = client.db(DB_NAME)
@@ -33,7 +33,8 @@ async function getResponse(inputText) {
       responseText = response.response
       botSDK.log(inputText + ":" + responseText)
     } else {
-      botSDK.log("No response found for ", inputText)
+      botSDK.log("No response found for ", inputText, "so using default if any")
+      responseText = config.default_response
     }
   } catch (err) {
     botSDK.log(err);
@@ -64,7 +65,7 @@ app.post('/', async function(request, response) {
 
   const cleanInput = inboundMsg.msg.txt.toLowerCase().trim()
   botSDK.log("New message : ", inboundMsg.msg.src, ":", cleanInput)
-  var output = await getResponse(cleanInput)
+  var output = await getResponse(cleanInput, request.config)
   botSDK.log("Sending back a ", output)
   var jsonResp = {}
   if (request.config.message=="TRUE") {
