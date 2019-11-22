@@ -75,9 +75,10 @@ app.post('/', async function(request, response) {
     jsonResp.whispers = [{ txt: output}]
   }
   if (request.config.slack == "TRUE") {
-    var text = "Received " + cleanInput + ", but found no matching rule"
+    const prefixTxt = inboundMsg.msg.src + "<->" + inboundMsg.msg.dst + ": "
+    var text = prefixTxt + "Received " + cleanInput + ", but found no response."
     if (output) {
-      text = "Received " + cleanInput + ", sent back a " + output
+      text = prefixTxt + "Received " + cleanInput + " and responded " + output
     }
     axios.post(request.config.slack_webhook, {
       text
