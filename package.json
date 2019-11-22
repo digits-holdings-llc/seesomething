@@ -20,7 +20,7 @@
     "axios": "^0.19.0",
     "express": "^4.17.1",
     "faker": "^4.1.0",
-    "greenbot-sdk": "^1.0.4",
+    "greenbot-sdk": "^1.0.5",
     "slack": "^11.0.2"
   }
 }

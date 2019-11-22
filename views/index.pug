@@ -7,67 +7,69 @@ html
   body
     .container
       .row
-        .col-md-3
-          img(src="seesomething.jpg" height=200)
-        .col-md-9
-          h1 See Something, Say Something
-      hr
-      .row
         .col-md-2
+          img(src="seesomething.jpg" height=100)
+        .col-md-8
+          h1 See Something? Say Something!
+      .row
+        .col-md-2.offset-md-2
           a(href="/config")
             | Configuration
         .col-md-2
           a(href="/log")
             | Logs
         .col-md-2
+          a(data-toggle="collapse" href="#help")
+            | Help
+        .col-md-2
           a(href="https://github.com/howethomas/seesomething")
             | Repo
-      hr
-      .row
-        .col-md-12
-          h2 Summary
-          p
-            | This automation looks for particular inbound messages. When one
-            | matches the rules, it will respond.  You can control if the
-            | response goes back to the customer, whispered to an agent, or
-            | is posted on Slack.
-      .row
-        .col-md-6
-          h2 Setup
-          ol
-            li Install this automation on a web server, or use an existing installation (ex: https://seesomething.tendigittext.com)
-            li Add this automation URL as an observer in the
-              a(href="https://qa.digits.holdings/settings/team/#Automations")
-                | team settings
-              section in the VHT Messaging Portal
-            li
-              a(href="/config")
-                | Configure the automation
-            li
-              | Send messages into the a network handle attached to the team with this automation
-              | enabled. Look for the appropriate responses in the end user, the VHT messaging
-              | portal or in the &nbsp
-              a(href="/log")
-                | Logs
-        .col-md-6
-          h2 Configuration
-          ul
-            li
-              strong Message:
-              | Set to "TRUE" to enable responses back to customers,
-              | currently configured as "#{config.message}"
-            li
-              strong Whisper:
-              | Set to "TRUE" to enable whispers to the agents,
-              | currently configured as "#{config.whisper}"
-            li
-              strong Slack:
-              | Set to TRUE to send this activity to channel with the webhook URL,
-              | currently configured as "#{config.slack}"
-            li
-              strong Slack Webhook:
-              | Set to the slack webhook URL, provided when you set this up in Slack
-              | currently configured as "#{config.slack_webhook}"
+      #help(class="collapse")
+        .row
+          .col-md-12
+            h2 Summary
+            p
+              | This automation looks for particular inbound messages. When one
+              | matches the rules, it will respond.  You can control if the
+              | response goes back to the customer, whispered to an agent, or
+              | is posted on Slack.
+        .row
+          .col-md-6
+            h2 Setup
+            ol
+              li Install this automation on a web server, or use an existing installation (ex: https://seesomething.tendigittext.com)
+              li Add this automation URL as an observer in the
+                a(href="https://qa.digits.holdings/settings/team/#Automations")
+                  | team settings
+                section in the VHT Messaging Portal
+              li
+                a(href="/config")
+                  | Configure the automation
+              li
+                | Send messages into the a network handle attached to the team with this automation
+                | enabled. Look for the appropriate responses in the end user, the VHT messaging
+                | portal or in the &nbsp
+                a(href="/log")
+                  | Logs
+          .col-md-6
+            h2 Configuration
+            ul
+              li
+                strong Message:
+                | Set to "TRUE" to enable responses back to customers,
+                | currently configured as "#{config.message}"
+              li
+                strong Whisper:
+                | Set to "TRUE" to enable whispers to the agents,
+                | currently configured as "#{config.whisper}"
+              li
+                strong Slack:
+                | Set to TRUE to send this activity to channel with the webhook URL,
+                | currently configured as "#{config.slack}"
+              li
+                strong Slack Webhook:
+                | Set to the slack webhook URL, provided when you set this up in Slack
+                | currently configured as "#{config.slack_webhook}"
       hr
       .row
         .col-md-6
@@ -95,6 +97,7 @@ html
               label(for='response') Response
               input#response.form-control(type='text', name='response', aria-describedby='responseHelp', placeholder='Enter response')
               button.btn.btn-primary(type='submit') Add
+
 
 
 
