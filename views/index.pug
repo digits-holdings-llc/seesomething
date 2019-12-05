@@ -72,31 +72,60 @@ html
                 | currently configured as "#{config.slack_webhook}"
       hr
       .row
-        .col-md-6
-          h2  Responses
+        .col-md-10
+          h2  Intents
             table.table
               thead.thead-dark
                 tr
-                  th inboundText
-                  th Response
+                  th Name
+                  th Response Text
                   th
               tbody
-                for response in responses
+                for intent in intents
                   tr
-                    td= response.inputText
-                    td= response.response
+                    td= intent.name
+                    td= intent.responseTxt
                     td
-                      a(href="/delete/"+response._id)
+                      a(href="/deleteIntent/"+intent._id)
                         | x
-        .col-md-6
-          h2 Add a New Response
-          form(action="/new_response" method="POST")
-            .form-group
-              label(for='inputText') Input Text
-              input#inputText.form-control(type='text', name='inputText', aria-describedby='inputTextHelp', placeholder='Enter input text')
-              label(for='response') Response
-              input#response.form-control(type='text', name='response', aria-describedby='responseHelp', placeholder='Enter response')
-              button.btn.btn-primary(type='submit') Add
+                tr
+                  form.form-inline(action="/new_intent" method="POST")
+                    .form-group
+                      td
+                        input#name.form-control(type='text', name='name', aria-describedby='nameHelp', placeholder='Intent name')
+                      td
+                        input#responseTxt.form-control(type='text', name='responseTxt', aria-describedby='responseHelp', placeholder='Enter response text')
+                      td
+                        button.btn.btn-primary(type='submit') Add
+      hr
+      .row
+        .col-md-10
+          h2  Intent Examples
+            table.table
+              thead.thead-dark
+                tr
+                  th Intent
+                  th Sample
+                  th
+              tbody
+                for example in examples
+                  tr
+                    td= intents.find(intent => intent._id == example.intentId).name
+                    td= example.sample
+                    td
+                      a(href="/deleteExample/"+example._id)
+                        | x
+                tr
+                  form.form-inline(action="/new_example" method="POST")
+                    .form-group
+                      td
+                        select#intentId.form-control(name='intentId', aria-describedby='responseHelp')
+                          for intent in intents
+                            option(value=intent._id) #{intent.name}
+                      td
+                        input#sample.form-control(type='text', name='sample', aria-describedby='Sample Help', placeholder='Enter sample text')
+                      td
+                        button.btn.btn-primary(type='submit') Add
 
 
 

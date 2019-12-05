@@ -12,6 +12,7 @@ const DB_NAME = parts[parts.length - 1]
 var contactTimeout
 var botSDK = require('greenbot-sdk')
 const axios = require('axios')
+const FuzzySet = require('fuzzyset.js')
 
 // Parse JSON bodies (as sent by API clients)
 app.use(express.json());
@@ -26,16 +27,36 @@ async function getResponse(inputText, config) {
   const client = await MongoClient.connect(mongoURL).catch(err => {botSDK.log("Mongo Client Connect error", err)})
   try {
     const db = client.db(DB_NAME)
-    let respColl = db.collection('responses')
-    var response = await respColl.findOne({inputText})
+    let exampleColl = db.collection('examples')
+    var examples = await exampleColl.find({}).toArray()
+    var sampleSet = examples.map(example => example.sample)
+    var search = FuzzySet(sampleSet)
     var responseText
-    if (response) {
-      responseText = response.response
-      botSDK.log(inputText + ":" + responseText)
-    } else {
-      botSDK.log("No response found for ", inputText, "so using default if any")
-      responseText = config.default_response
+    nearestMatch = search.get(inputText)
+    nearestScore = nearestMatch[0][0]
+    nearestSample = nearestMatch[0][1]
+    console.log("Nearest match ", nearestScore, nearestSample)
+    var reqScore = 0.8
+    if (config.score) {
+      reqScore = Number(config.score)
     }
+    console.log("Required score is ", reqScore)
+    if (nearestScore > reqScore) {
+      console.log("We have a match!")
+      let selectedExample = await exampleColl.findOne({sample: nearestSample})
+      console.log("Found matching example ", selectedExample)
+      let intentColl = db.collection('intents')
+      var nearestIntent = await intentColl.findOne({_id: new ObjectID(selectedExample.intentId)})
+      console.log("Found matching intent ", nearestIntent)
+      if (nearestIntent) {
+        responseText = nearestIntent.responseTxt
+      } else {
+        botSDK.log("No response found")
+      }
+    } else {
+      botSDK.log("No close enough response found")
+    }
+    botSDK.log("Responding with a ", responseText)
   } catch (err) {
     botSDK.log(err);
   } finally {
@@ -90,15 +111,34 @@ app.post('/', async function(request, response) {
   response.send(jsonResp)
 })
 
-async function deleteResponse(_id) {
-  botSDK.log("Deleteing response ", _id)
+async function deleteIntent(_id) {
+  botSDK.log("Deleting intent and examples ", _id)
   const client = await MongoClient.connect(mongoURL).catch(err => {botSDK.log("Mongo Client Connect error", err)})
   if (!client) {
     return;
   }
   try {
     const db = client.db(DB_NAME)
-    let collection = db.collection('responses')
+    let collection = db.collection('intents')
+    await collection.deleteOne({_id: new ObjectID(_id)})
+    collection = db.collection('examples')
+    await collection.deleteMany({intentId: _id})
+  } catch (err) {
+    botSDK.log(err);
+  } finally {
+    client.close();
+  }
+}
+
+async function deleteExample(_id) {
+  botSDK.log("Deleteing examples ", _id)
+  const client = await MongoClient.connect(mongoURL).catch(err => {botSDK.log("Mongo Client Connect error", err)})
+  if (!client) {
+    return;
+  }
+  try {
+    const db = client.db(DB_NAME)
+    let collection = db.collection('examples')
     await collection.deleteOne({_id: new ObjectID(_id)})
   } catch (err) {
     botSDK.log(err);
@@ -108,20 +148,24 @@ async function deleteResponse(_id) {
 }
 
 
-app.get('/delete/:id', function(request, response) {
-  deleteResponse(request.params.id)
+app.get('/deleteIntent/:id', function(request, response) {
+  deleteIntent(request.params.id)
+  response.redirect("/")
+})
+app.get('/deleteExample/:id', function(request, response) {
+  deleteExample(request.params.id)
   response.redirect("/")
 })
 
-async function add(response) {
+async function addExample(example) {
   const client = await MongoClient.connect(mongoURL).catch(err => {botSDK.log("Mongo Client Connect error", err)})
   if (!client) {
     return;
   }
   try {
     const db = client.db(DB_NAME)
-    let collection = db.collection('responses')
-    await collection.insertOne(response)
+    let collection = db.collection('examples')
+    await collection.insertOne(example)
   } catch (err) {
     botSDK.log(err);
   } finally {
@@ -130,18 +174,43 @@ async function add(response) {
 }
 
 
-app.post('/new_response', function(request, response) {
-  add(request.body)
+app.post('/new_example', function(request, response) {
+  addExample(request.body)
   response.redirect("/")
   })
+
+async function addIntent(intent) {
+  const client = await MongoClient.connect(mongoURL).catch(err => {botSDK.log("Mongo Client Connect error", err)})
+  if (!client) {
+    return;
+  }
+  try {
+    const db = client.db(DB_NAME)
+    let collection = db.collection('intents')
+    await collection.insertOne(intent)
+  } catch (err) {
+    botSDK.log(err);
+  } finally {
+    client.close();
+  }
+}
+
+
+app.post('/new_intent', function(request, response) {
+  addIntent(request.body)
+  response.redirect("/")
+  })
+
 
 app.get('/', async function(request, response) {
   const client = await MongoClient.connect(mongoURL).catch(err => {botSDK.log("Mongo Client Connect error", err)})
   try {
     const db = client.db(DB_NAME)
-    let respColl = db.collection('responses')
-    var responses = await respColl.find().toArray()
-    response.render('index', { responses, config: request.config})
+    let exampleColl = db.collection('examples')
+    var examples = await exampleColl.find().toArray()
+    let intentColl = db.collection('intents')
+    var intents = await intentColl.find().toArray()
+    response.render('index', { examples, intents, config: request.config})
   } catch (err) {
     botSDK.log(err);
   } finally {
