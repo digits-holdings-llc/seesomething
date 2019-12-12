@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dockerize": "docker build -t howethomas/seesomething .",
-    "start": "node index.js"
+    "start": "node index.js",
+    "https": "openssl req -nodes -new -x509 -keyout server.key -out server.cert"
   },
   "repository": {
     "type": "git",
