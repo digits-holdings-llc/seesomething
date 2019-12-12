@@ -87,6 +87,17 @@ app.post('/', async function(request, response) {
   const cleanInput = inboundMsg.msg.txt.toLowerCase().trim()
   botSDK.log("New message : ", inboundMsg.msg.src, ":", cleanInput)
   var output = await getResponse(cleanInput, request.config)
+  if (!output) {
+    botSDK.log("No close response found.")
+    if (request.config.default_response) {
+      botSDK.log("Using default response.")
+      output = request.config.default_response
+    } else {
+      botSDK.log("No default response.")
+      response.send({})
+      return;
+    }
+  }
   botSDK.log("Sending back a ", output)
   var jsonResp = {}
   if (request.config.message=="TRUE") {
