@@ -33,6 +33,10 @@ async function getResponse(inputText, config) {
     var search = FuzzySet(sampleSet)
     var responseText
     nearestMatch = search.get(inputText)
+    if (!nearestMatch) {
+      console.log("No match found in fuzzy search")
+      return
+    }
     nearestScore = nearestMatch[0][0]
     nearestSample = nearestMatch[0][1]
     console.log("Nearest match ", nearestScore, nearestSample)
