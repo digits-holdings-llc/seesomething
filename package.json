@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/howethomas/seesomething.git"
+    "url": "git+https://github.com/digits-holdings-llc/seesomething.git"
   },
   "author": "Thomas Howe & Matthew Jarosz",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/howethomas/seesomething/issues"
+    "url": "https://github.com/digits-holdings-llc/seesomething/issues"
   },
-  "homepage": "https://github.com/howethomas/seesomething#readme",
+  "homepage": "https://github.com/digits-holdings-llc/seesomething#readme",
   "dependencies": {
     "axios": "^0.19.0",
     "express": "^4.17.1",
