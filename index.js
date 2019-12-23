@@ -1,8 +1,6 @@
 const express = require('express')
 const app = express()
-var fs = require('fs')
-var https = require('https')
-var http = require('http')
+var http = require('http').createServer(app);
 const port = process.env.WEB_PORT || 80
 var MongoClient = require('mongodb').MongoClient
 const ObjectID = require('mongodb').ObjectID
@@ -14,18 +12,6 @@ var contactTimeout
 var botSDK = require('greenbot-sdk')
 const axios = require('axios')
 const FuzzySet = require('fuzzyset.js')
-var endpoint
-
-if (fs.existsSync('server.key') && fs.existsSync('server.cert')) {
-  botSDK.log("Running secure HTTPS")
-  endpoint = https.createServer({
-    key: fs.readFileSync('server.key'),
-    cert: fs.readFileSync('server.cert')
-  }, app)
-} else {
-  botSDK.log("Running non secure HTTP")
-  endpoint = http.createServer(app);
-}
 
 // Parse JSON bodies (as sent by API clients)
 app.use(express.json());
@@ -34,7 +20,7 @@ app.engine('pug', require('pug').__express)
 app.set('view engine', 'pug')
 app.set('views', './views')
 app.use(express.static('public'))
-botSDK.init(app, endpoint)
+botSDK.init(app, http)
 
 async function getResponse(inputText, config) {
   const client = await MongoClient.connect(mongoURL).catch(err => {botSDK.log("Mongo Client Connect error", err)})
@@ -246,4 +232,4 @@ app.get('/', async function(request, response) {
   }
 })
 
-endpoint.listen(port, () => botSDK.log(`SeeSomething running on ${port}!`))
+http.listen(port, () => botSDK.log(`SeeSomething running on ${port}!`))
