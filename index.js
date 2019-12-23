@@ -3,7 +3,6 @@ const app = express();
 const http = require('http').createServer(app);
 const port = process.env.WEB_PORT || 80;
 const ObjectID = require('mongodb').ObjectID;
-const { GraphQLClient } = require('graphql-request');
 const SUBDOMAIN = process.env.SUBDOMAIN;
 const { init, log, client } = require('greenbot-sdk');
 const axios = require('axios');
