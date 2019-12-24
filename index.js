@@ -84,7 +84,7 @@ app.post('/', async function(request, response) {
 
   const cleanInput = inboundMsg.msg.txt.toLowerCase().trim();
   log('New message : ', inboundMsg.msg.src, ':', cleanInput);
-  const output = await getResponse(cleanInput, request.config);
+  let output = await getResponse(cleanInput, request.config);
   if (!output) {
     log('No close response found.');
     if (request.config.default_response) {
