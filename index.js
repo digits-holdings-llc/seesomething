@@ -18,13 +18,13 @@ app.use(express.static('public'));
 init(app, http);
 
 async function getResponse(inputText, config) {
+  let responseText;
   try {
     const db = client.db(SUBDOMAIN);
     const exampleColl = db.collection('examples');
     const examples = await exampleColl.find({}).toArray();
     const sampleSet = examples.map(example => example.sample);
     const search = FuzzySet(sampleSet);
-    let responseText;
     nearestMatch = search.get(inputText);
     if (!nearestMatch) {
       console.log('No match found in fuzzy search');
