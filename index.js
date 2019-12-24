@@ -40,10 +40,14 @@ async function getResponse(inputText, config) {
     console.log('Required score is ', reqScore);
     if (nearestScore > reqScore) {
       console.log('We have a match!');
-      const selectedExample = await exampleColl.findOne({ sample: nearestSample });
+      const selectedExample = await exampleColl.findOne({
+        sample: nearestSample
+      });
       console.log('Found matching example ', selectedExample);
       const intentColl = db.collection('intents');
-      const nearestIntent = await intentColl.findOne({ _id: new ObjectID(selectedExample.intentId) });
+      const nearestIntent = await intentColl.findOne({
+        _id: new ObjectID(selectedExample.intentId)
+      });
       console.log('Found matching intent ', nearestIntent);
       if (nearestIntent) {
         responseText = nearestIntent.responseTxt;
