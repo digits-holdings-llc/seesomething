@@ -64,27 +64,46 @@ async function getResponse(inputText, config) {
   return responseText;
 }
 
+async function saveMessage(message) {
+  try {
+    const db = client.db(SUBDOMAIN);
+    let messagesCollection = db.collection('seenMessages');
+    await messagesCollection.insertOne(message);
+  } catch (err) {
+    log(err);
+  }
+}
+
 // Access the parse results as request.body
 app.post('/', async function(request, response) {
   const inboundMsg = request.body;
 
   // If this is a session end event, ignore
   if (inboundMsg.type == 'session_end' || inboundMsg.type == 'new_session') {
-    response.send({});
+    response.end();
     return;
   }
   if (!inboundMsg.msg) {
-    response.send({});
+    response.end();
     return;
   }
   if (request.body.msg.direction == 'egress') {
-    response.send({});
+    response.end();
     return;
   }
 
   const cleanInput = inboundMsg.msg.txt.toLowerCase().trim();
   log('New message : ', inboundMsg.msg.src, ':', cleanInput);
   let output = await getResponse(cleanInput, request.config);
+  await saveMessage({
+    from: inboundMsg.msg.src,
+    to: inboundMsg.msg.dst,
+    received: cleanInput,
+    responded: output,
+    sentToSlack: request.config.slack === 'TRUE',
+    sentToUser: request.config.message === 'TRUE',
+    createdAt: new Date()
+  });
   if (!output) {
     log('No close response found.');
     if (request.config.default_response) {
@@ -92,7 +111,7 @@ app.post('/', async function(request, response) {
       output = request.config.default_response;
     } else {
       log('No default response.');
-      response.send({});
+      response.end();
       return;
     }
   }
