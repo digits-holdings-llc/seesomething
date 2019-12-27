@@ -99,7 +99,7 @@ app.post('/', async function(request, response) {
     from: inboundMsg.msg.src,
     to: inboundMsg.msg.dst,
     received: cleanInput,
-    responded: output,
+    responded: output || request.config.default_response,
     sentToSlack: request.config.slack === 'TRUE',
     sentToUser: request.config.message === 'TRUE',
     createdAt: new Date()
