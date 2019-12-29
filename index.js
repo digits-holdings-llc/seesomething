@@ -46,7 +46,7 @@ async function getResponse(inputText, config) {
       console.log('Found matching example ', selectedExample);
       const intentColl = db.collection('intents');
       const nearestIntent = await intentColl.findOne({
-        _id: new ObjectID(selectedExample.intentId)
+        _id: selectedExample.intentId
       });
       console.log('Found matching intent ', nearestIntent);
       if (nearestIntent) {
@@ -104,6 +104,22 @@ app.post('/', async function(request, response) {
     sentToUser: request.config.message === 'TRUE',
     createdAt: new Date()
   });
+  if (request.config.slack == 'TRUE') {
+    const prefixTxt = inboundMsg.msg.src + '<->' + inboundMsg.msg.dst + ': ';
+    let text = prefixTxt + 'Received ' + cleanInput + ', but found no response.';
+    if (output) {
+      text = prefixTxt + 'Received ' + cleanInput + ' and responded ' + output;
+    }
+    console.log('output', output);
+
+    axios
+      .post(request.config.slack_webhook, {
+        text
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  }
   if (!output) {
     log('No close response found.');
     if (request.config.default_response) {
@@ -123,20 +139,6 @@ app.post('/', async function(request, response) {
   if (request.config.whisper == 'TRUE') {
     jsonResp.whispers = [{ txt: output }];
   }
-  if (request.config.slack == 'TRUE') {
-    const prefixTxt = inboundMsg.msg.src + '<->' + inboundMsg.msg.dst + ': ';
-    let text = prefixTxt + 'Received ' + cleanInput + ', but found no response.';
-    if (output) {
-      text = prefixTxt + 'Received ' + cleanInput + ' and responded ' + output;
-    }
-    axios
-      .post(request.config.slack_webhook, {
-        text
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  }
   response.send(jsonResp);
 });
 
@@ -147,10 +149,10 @@ async function deleteIntent(_id) {
   }
   try {
     const db = client.db(SUBDOMAIN);
-    const collection = db.collection('intents');
-    await collection.deleteOne({ _id: new ObjectID(_id) });
-    collection = db.collection('examples');
-    await collection.deleteMany({ intentId: _id });
+    const intentCollection = db.collection('intents');
+    await intentCollection.deleteOne({ _id: new ObjectID(_id) });
+    const exampleCollection = db.collection('examples');
+    await exampleCollection.deleteMany({ intentId: new ObjectID(_id) });
   } catch (err) {
     log(err);
   }
@@ -192,8 +194,8 @@ async function addExample(example) {
   }
 }
 
-app.post('/new_example', function(request, response) {
-  addExample(request.body);
+app.post('/new_example', function({ body }, response) {
+  addExample({ ...body, intentId: new ObjectID(body.intentId) });
   response.redirect('/');
 });
 
