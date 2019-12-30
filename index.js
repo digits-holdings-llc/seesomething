@@ -75,7 +75,7 @@ async function saveMessage(message) {
 }
 
 // Access the parse results as request.body
-app.post('/', async function(request, response) {
+app.post('/', async function (request, response) {
   const inboundMsg = request.body;
 
   // If this is a session end event, ignore
@@ -172,11 +172,11 @@ async function deleteExample(_id) {
   }
 }
 
-app.get('/deleteIntent/:id', function(request, response) {
+app.get('/deleteIntent/:id', function (request, response) {
   deleteIntent(request.params.id);
   response.redirect('/');
 });
-app.get('/deleteExample/:id', function(request, response) {
+app.get('/deleteExample/:id', function (request, response) {
   deleteExample(request.params.id);
   response.redirect('/');
 });
@@ -194,7 +194,7 @@ async function addExample(example) {
   }
 }
 
-app.post('/new_example', function({ body }, response) {
+app.post('/new_example', function ({ body }, response) {
   addExample({ ...body, intentId: new ObjectID(body.intentId) });
   response.redirect('/');
 });
@@ -212,12 +212,12 @@ async function addIntent(intent) {
   }
 }
 
-app.post('/new_intent', function(request, response) {
+app.post('/new_intent', function (request, response) {
   addIntent(request.body);
   response.redirect('/');
 });
 
-app.get('/', async function(request, response) {
+app.get('/', async function (request, response) {
   try {
     const db = client.db(SUBDOMAIN);
     const exampleColl = db.collection('examples');

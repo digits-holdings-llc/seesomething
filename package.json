@@ -23,7 +23,7 @@
     "express": "^4.17.1",
     "faker": "^4.1.0",
     "fuzzyset.js": "0.0.8",
-    "greenbot-sdk": "^1.0.17",
+    "greenbot-sdk": "1.0.18",
     "slack": "^11.0.2"
   }
 }
