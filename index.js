@@ -224,7 +224,8 @@ app.get('/', async function (request, response) {
     const examples = await exampleColl.find().toArray();
     const intentColl = db.collection('intents');
     const intents = await intentColl.find().toArray();
-    response.render('index', { examples, intents, config: request.config });
+    const version = process.env.COMMIT_HASH ? process.env.COMMIT_HASH : "";
+    response.render('index', { examples, intents, config: request.config,version });
   } catch (err) {
     log(err);
   }
