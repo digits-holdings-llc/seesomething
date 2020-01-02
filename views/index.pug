@@ -86,8 +86,10 @@ html
                     td= intent.name
                     td= intent.responseTxt
                     td
-                      a(href="/deleteIntent/"+intent._id)
-                        | x
+                      a(href="/editIntent/"+intent._id)
+                        | edit
+                      a(href="/deleteIntent/"+intent._id, style="margin-left: 15px", onClick="return confirm('Are you sure you want to delete this intent')")
+                        | delete
                 tr
                   form.form-inline(action="/new_intent" method="POST")
                     .form-group
@@ -114,8 +116,10 @@ html
                     td= intent ? intent.name : "--missing intent--"
                     td= example.sample
                     td
-                      a(href="/deleteExample/"+example._id)
-                        | x
+                      a(href="/editExample/"+example._id)
+                        | edit
+                      a(href="/deleteExample/"+example._id, style="margin-left: 15px", onClick="return confirm('Are you sure you want to delete this example')")
+                        | delete
                 tr
                   form.form-inline(action="/new_example" method="POST")
                     .form-group

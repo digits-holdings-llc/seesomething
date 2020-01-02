@@ -231,4 +231,76 @@ app.get('/', async function (request, response) {
   }
 });
 
+app.get('/editIntent/:id', async function (request, response) {
+  try {
+    const db = client.db(SUBDOMAIN);
+    const intentColl = db.collection('intents');
+    const intent = await intentColl.findOne({
+      _id: new ObjectID(request.params.id)
+    });
+
+    if (!intent) {
+      response.redirect('/');
+    }
+
+    response.render('editIntent', { title: 'Edit Intent', intent });
+  } catch (err) {
+    log(err);
+  }
+});
+
+app.post('/editIntent', async function (request, response) {
+  log('Updating Intent: ', request.body.id);
+  try {
+    const db = client.db(SUBDOMAIN);
+    const intentColl = db.collection('intents');
+    var intent = await intentColl.findOne({
+      _id: new ObjectID(request.body.id)
+    });
+
+    if (intent) {
+      await intentColl.updateOne({ _id: intent._id}, { $set: {name: request.body.name, responseTxt: request.body.responseTxt}});
+    }    
+  } catch (err) {
+    log(err);
+  }
+  response.redirect('/');
+});
+
+app.get('/editExample/:id', async function (request, response) {
+  try {
+    const db = client.db(SUBDOMAIN);
+    const exampleColl = db.collection('examples');
+    const example = await exampleColl.findOne({
+      _id: new ObjectID(request.params.id)
+    });
+
+    if (!example) {
+      response.redirect('/');
+    }
+
+    response.render('editExample', { title: 'Edit Example', example });
+  } catch (err) {
+    log(err);
+  }
+});
+
+app.post('/editExample', async function (request, response) {
+  log('Updating Example: ', request.body.id);
+  try {
+    const db = client.db(SUBDOMAIN);
+    const exampleColl = db.collection('examples');
+    var example = await exampleColl.findOne({
+      _id: new ObjectID(request.body.id)
+    });
+
+    if (example) {
+      await exampleColl.updateOne({ _id: example._id}, { $set: {sample: request.body.sample}});
+    }    
+  } catch (err) {
+    log(err);
+  }
+  response.redirect('/');
+});
+
 http.listen(port, () => log(`SeeSomething running on ${port}!`));
