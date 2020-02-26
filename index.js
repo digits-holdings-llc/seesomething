@@ -158,6 +158,22 @@ async function deleteIntent(_id) {
   }
 }
 
+async function deleteAllIntents() {
+  log('Deleting all intents...');
+  if (!client) {
+    return;
+  }
+  try {
+    const db = client.db(SUBDOMAIN);
+    const intentCollection = db.collection('intents');
+    await intentCollection.deleteMany({ });
+    const exampleCollection = db.collection('examples');
+    await exampleCollection.deleteMany({ });
+  } catch (err) {
+    log(err);
+  }
+}
+
 async function deleteExample(_id) {
   log('Deleteing examples ', _id);
   if (!client) {
@@ -176,6 +192,12 @@ app.get('/deleteIntent/:id', function (request, response) {
   deleteIntent(request.params.id);
   response.redirect('/');
 });
+
+app.get('/deleteAllIntents', function (request, response) {
+  deleteAllIntents();
+  response.redirect('/');
+});
+
 app.get('/deleteExample/:id', function (request, response) {
   deleteExample(request.params.id);
   response.redirect('/');
@@ -195,8 +217,16 @@ async function addExample(example) {
 }
 
 app.post('/new_example', function ({ body }, response) {
-  addExample({ ...body, intentId: new ObjectID(body.intentId) });
-  response.redirect('/');
+  if (!body.sample || 
+    !body.intentId || 
+    body.sample.trim() == "" || 
+    body.intentId.trim() == "") {
+    response.redirect('/');
+  }  
+  else {
+    addExample({ ...body, intentId: new ObjectID(body.intentId) });
+    response.redirect('/');
+  }
 });
 
 async function addIntent(intent) {
@@ -213,8 +243,16 @@ async function addIntent(intent) {
 }
 
 app.post('/new_intent', function (request, response) {
-  addIntent(request.body);
-  response.redirect('/');
+  if (!request.body.name || 
+    !request.body.responseTxt || 
+    request.body.name.trim() == "" || 
+    request.body.responseTxt.trim() == "") {
+    response.redirect('/');
+  }
+  else {
+    addIntent(request.body);
+    response.redirect('/');
+  }
 });
 
 app.get('/', async function (request, response) {
