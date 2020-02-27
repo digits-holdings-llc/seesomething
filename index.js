@@ -263,7 +263,7 @@ app.get('/', async function (request, response) {
     const intentColl = db.collection('intents');
     const intents = await intentColl.find().toArray();
     const version = process.env.COMMIT_HASH ? process.env.COMMIT_HASH : "";
-    response.render('index', { examples, intents, config: request.config,version });
+    response.render('index', { examples, intents, config: request.config,version, isAuthorized: request.session.authorized});
   } catch (err) {
     log(err);
   }

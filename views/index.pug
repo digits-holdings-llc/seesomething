@@ -11,6 +11,10 @@ html
           img(src="seesomething.jpg" height=100)
         .col-md-8
           h1 See Something? Say Something!
+        if isAuthorized && config.password != ""
+          .col-md-2
+            a(href="/logout")
+              | Logout
       .row
         .col-md-2.offset-md-2
           a(href="/config")
