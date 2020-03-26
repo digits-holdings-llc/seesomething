@@ -293,6 +293,7 @@ async function init(app, http) {
     requestWhitelist: ['headers', 'query', 'body'],
     responseWhitelist: ['body', 'statusCode', 'headers'],
     meta: true,
+    msg: `method: {{req.method}} | host: {{req.headers.host}} | path: {{req.url}} | response_time: {{res.responseTime}}ms `, 
     expressFormat: false,
     colorize: false,
     ignoreRoute: function (req, res) { return false; }
