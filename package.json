@@ -20,10 +20,20 @@
   "homepage": "https://github.com/digits-holdings-llc/seesomething#readme",
   "dependencies": {
     "axios": "^0.19.0",
+    "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
+    "express-winston": "^4.0.3",
     "faker": "^4.1.0",
+    "fs": "0.0.1-security",
     "fuzzyset.js": "0.0.8",
-    "greenbot-sdk": "1.0.18",
-    "slack": "^11.0.2"
+    "jose": "^1.25.0",
+    "js-yaml": "^3.13.1",
+    "lodash": "^4.17.15",
+    "mongodb": "^3.5.5",
+    "pug": "^2.0.4",
+    "shortid": "^2.2.15",
+    "slack": "^11.0.2",
+    "winston": "^3.2.1",
+    "winston-daily-rotate-file": "^4.4.2"
   }
 }

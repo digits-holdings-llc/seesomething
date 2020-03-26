@@ -11,7 +11,7 @@ html
           img(src="seesomething.jpg" height=100)
         .col-md-8
           h1 See Something? Say Something!
-        if isAuthorized && config.password != ""
+        if config.password && config.password.length > 0
           .col-md-2
             a(href="/logout")
               | Logout
