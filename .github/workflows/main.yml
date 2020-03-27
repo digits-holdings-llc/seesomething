@@ -119,8 +119,21 @@ jobs:
             if(contents is not None):
                 current_content = base64.b64decode(contents.content)
                 automations = yaml.load(current_content,Loader=yaml.FullLoader)
-                if(automations.get('spec') and automations['spec'].get('values') and automations['spec']['values'].get('image')):
-                    automations['spec']['values']['image']['tag'] = TAG
+                current_list = automations.get('spec', {}).get('values', {}).get('services', None)
+                if current_list:
+                    current_list = automations['spec']['values']['services']
+                    change = {'name': 'seesomething', 'imageTag': TAG }
+                    services = list()
+                    for item in current_list:
+                        if(item.get('name') == change.get('name')):
+                            services.append({
+                                **item,
+                                **change
+                            })
+                        else:
+                            services.append(item)
+                    
+                    automations['spec']['values']['services']= services
                 else:
                    raise Exception('Not executing this step, as there is no image or tag part in the values')
                 try:
