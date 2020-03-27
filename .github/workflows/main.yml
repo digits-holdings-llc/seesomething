@@ -3,7 +3,7 @@ name: Docker Image CI
 env:
   DOCKER_REGISTRY_PATH: 882418173765.dkr.ecr.us-east-2.amazonaws.com
   DOCKER_BUILDKIT: 1
-  DEVOPS_REPO: digits-holdings-llc/automations-devops
+  DEVOPS_REPO: digits-holdings-llc/messaging-devops
   DEV_CLUSTER_NAME: vht-test
   edge: edge
   qa: qa
