@@ -60,6 +60,10 @@ jobs:
         docker-compose -f docker-compose-build.yaml build --parallel
        
     - name: docker push
+      env:
+        AWS_ACCESS_KEY_ID: AKIA425BYY5C76FEY3Y3
+        AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+        AWS_DEFAULT_REGION: us-east-2
       run:  |-
         login="$(aws ecr get-login --region us-east-2)"
         login="${login/-e none/}"
