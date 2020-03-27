@@ -1,0 +1,122 @@
+name: Docker Image CI
+
+env:
+  DOCKER_REGISTRY_PATH: 882418173765.dkr.ecr.us-east-2.amazonaws.com
+  DOCKER_BUILDKIT: 1
+  DEVOPS_REPO: digits-holdings-llc/automations-devops
+  DEV_CLUSTER_NAME: vht-test
+  edge: edge
+  qa: qa
+  perf: perf
+  
+  
+on:
+  push:
+    branches: [ master ]
+    tags:        
+      - v*
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    runs-on: [self-hosted]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+ 
+    - name: calculate version and tag
+      shell: python
+      run: |-
+        import os
+        VERSION = os.environ.get('GITHUB_REF').replace('refs','').replace('heads','').replace('tags','').replace('/','')
+        
+        with open('TAG','w') as writer:
+          if(VERSION.startswith('v')):
+            writer.write(VERSION)
+          else:
+            VERSION = '%s-%s' %(VERSION,os.environ.get('GITHUB_SHA')[:8])
+            writer.write(VERSION)
+        
+         
+     
+    - name: docker build
+      run: |-
+        BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+        TAG=$(cat TAG) \
+        docker-compose -f docker-compose-build.yaml build --parallel
+       
+    - name: docker push
+      run:  |-
+        login="$(aws ecr get-login --region us-east-2)"
+        login="${login/-e none/}"
+        $login 
+        BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+        TAG=$(cat TAG) \
+        docker-compose -f docker-compose-build.yaml push
+
+    - name: update release file
+      shell: python
+      env:
+        DEVOPS_GIT_TOKEN: "${{ secrets.DEVOPS_GIT_TOKEN }}"
+      run: |-
+        from github import Github
+        import sys
+        import os
+        import base64
+        import yaml
+
+        g = Github(os.environ.get('DEVOPS_GIT_TOKEN'))
+        TAG = None
+        with open('TAG','r') as reader:
+            TAG = reader.read()
+        repo = None
+        with open('ERROR','w') as writer:
+            writer.write('----------Error LOG\n' )
+        try:
+          repo = g.get_repo(os.environ.get('DEVOPS_REPO'))
+        except:
+          
+          message = "%s %s %s" % (sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+          with open('ERROR','a') as writer:
+            writer.write('%s Unable to get repo object' %(message))
+        paths_to_release_file = list()
+        if(TAG.startswith('master')):
+            path_to_release_file = 'k8s/%s/releases/%s/automations.yaml' %(os.environ.get('DEV_CLUSTER_NAME'),os.environ.get('edge'))
+            paths_to_release_file.append(path_to_release_file)
+        else:
+            path_to_release_file = 'k8s/%s/releases/%s/automations.yaml' %(os.environ.get('DEV_CLUSTER_NAME'),os.environ.get('qa'))
+            paths_to_release_file.append(path_to_release_file)
+            path_to_release_file = 'k8s/%s/releases/%s/automations.yaml' %(os.environ.get('DEV_CLUSTER_NAME'),os.environ.get('perf'))
+            paths_to_release_file.append(path_to_release_file)
+            
+        for path in paths_to_release_file:
+            contents = None
+            try:
+                contents = repo.get_contents(path)
+            except:
+                message = "%s %s %s" % (
+                    sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                with open('ERROR','a') as writer:
+                  writer.write('%s \nIssue with getting current contents' %(message))
+            if(contents is not None):
+                current_content = base64.b64decode(contents.content)
+                automations = yaml.load(current_content,Loader=yaml.FullLoader)
+                if(automations.get('spec') and automations['spec'].get('values') and automations['spec']['values'].get('image')):
+                    automations['spec']['values']['image']['tag'] = TAG
+                else:
+                   raise Exception('Not executing this step, as there is no image or tag part in the values')
+                try:
+                  res=repo.update_file(contents.path, 'Updating Image Tag - github action',yaml.dump(automations), contents.sha)
+                except:
+                  message = "%s %s %s" % (
+                    sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                  with open('ERROR','a') as writer:
+                    writer.write('%s \nIssue with committing updated content' %(message))
+
+
+
+
+
+
