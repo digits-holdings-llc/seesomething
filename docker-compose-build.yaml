@@ -1,0 +1,24 @@
+version: "3.7"
+
+
+services:
+  agent:
+    image: ${DOCKER_REGISTRY_PATH}/seesomething:${TAG}
+    build:
+      context: ./
+      labels:
+        org.opencontainers.image.created: ${BUILD_DATE}
+        org.opencontainers.image.revision: ${GITHUB_SHA}
+        org.opencontainers.image.vendor: Virtual Hold Technology Solutions, LLC
+        org.label-schema.schema-version: ${TAG}
+        org.opencontainers.image.source: https://github.com/${GITHUB_REPOSITORY}
+  
+        
+
+
+
+        
+
+
+
+
