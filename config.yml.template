@@ -1,0 +1,10 @@
+message: 'FALSE'
+whisper: 'FALSE'
+slack: 'TRUE'
+default_response: ''
+slack_webhook: ''
+trace: ''
+score: 0.75
+unique_id: ''
+log_url: ''
+password: ''

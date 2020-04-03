@@ -9,24 +9,16 @@ const {
 require('http').ServerResponse = ServerResponse;
 require('http').IncomingMessage = IncomingMessage;
 
-const express = require('express');
-const app = express();
-const ObjectID = require('mongodb').ObjectID;
+const { initSDK, app, ORGANIZATION_ID } = require('vht-automations-sdk');
 const axios = require('axios');
 const FuzzySet = require('fuzzyset.js');
+const express = require("express");
+const ObjectID = require('mongodb').ObjectID;
 
-const { init, getClient, DBName } = require("./sdk.js");
-
-// Parse JSON bodies (as sent by API clients)
-app.use(express.json());
-app.use(express.urlencoded());
-app.engine('pug', require('pug').__express);
-app.set('view engine', 'pug');
-app.set('views', './views');
 app.use(express.static('public'));
 
-init(app)
-  .then(() => {
+initSDK({applicationName: "See Something Say Something", pug_views: ["views"]})
+  .then(() => { 
     initializeRoutes();
     createServer(app).listen(); // nginx unit listen entry point
   }
@@ -51,7 +43,7 @@ function initializeRoutes(){
     }
 
     const cleanInput = inboundMsg.msg.txt.toLowerCase().trim();
-    console.error('New message : ', inboundMsg.msg.src, ':', cleanInput);
+    request.logger.info('New message : ', inboundMsg.msg.src, ':', cleanInput);
     let output = await getResponse(cleanInput, request.config);
     await saveMessage({
       from: inboundMsg.msg.src,
@@ -68,28 +60,28 @@ function initializeRoutes(){
       if (output) {
         text = prefixTxt + 'Received ' + cleanInput + ' and responded ' + output;
       }
-      console.error('output', output);
+      request.logger.info('output', output);
 
       axios
         .post(request.config.slack_webhook, {
           text
         })
         .catch(error => {
-          console.error(error);
+          request.logger.error(error);
         });
     }
     if (!output) {
-      console.error('No close response found.');
+      request.logger.info('No close response found.');
       if (request.config.default_response) {
-        console.error('Using default response.');
+        request.logger.info('Using default response.');
         output = request.config.default_response;
       } else {
-        console.error('No default response.');
+        request.logger.info('No default response.');
         response.end();
         return;
       }
     }
-    console.error('Sending back a ', output);
+    request.logger.info('Sending back a ', output);
     const jsonResp = {};
     if (request.config.message == 'TRUE') {
       jsonResp.messages = [{ txt: output }];
@@ -101,22 +93,23 @@ function initializeRoutes(){
   });
 
   app.get('/deleteIntent/:id', function (request, response) {
-    deleteIntent(request.params.id);
+    deleteIntent(request);
     response.redirect('/');
   });
 
   app.get('/deleteAllIntents', function (request, response) {
-    deleteAllIntents();
+    deleteAllIntents(request);
     response.redirect('/');
   });
 
   app.get('/deleteExample/:id', function (request, response) {
-    deleteExample(request.params.id);
+    deleteExample(request);
     response.redirect('/');
   });
 
 
-  app.post('/new_example', function ({ body }, response) {
+  app.post('/new_example', function (request, response) {
+    const body = request.body;
     if (!body.sample ||
       !body.intentId ||
       body.sample.trim() == "" ||
@@ -124,7 +117,7 @@ function initializeRoutes(){
       response.redirect('/');
     }
     else {
-      addExample({ ...body, intentId: new ObjectID(body.intentId) });
+      addExample({ ...body, intentId: new ObjectID(body.intentId) }, request);
       response.redirect('/');
     }
   });
@@ -138,16 +131,15 @@ function initializeRoutes(){
       response.redirect('/');
     }
     else {
-      addIntent(request.body);
+      addIntent(request.body, request);
       response.redirect('/');
     }
   });
 
   app.get('/', async function (request, response) {
-    const client = await getClient();  
     try {
-      await client.connect();
-      const db = client.db(DBName);
+      await request.mongoClient.connect();
+      const db = request.mongoClient.db(request.mongoDatabaseName);
       const exampleColl = db.collection('examples');
       const examples = await exampleColl.find().toArray();
       const intentColl = db.collection('intents');
@@ -155,18 +147,17 @@ function initializeRoutes(){
       const version = process.env.COMMIT_HASH ? process.env.COMMIT_HASH : "";
       response.render('index', { examples, intents, config: request.config, version });
     } catch (err) {
-      console.error(err);
+      request.logger.error(err);
     }
     finally {
-      await client.close();
+      await request.mongoClient.close();
     }
   });
 
   app.get('/editIntent/:id', async function (request, response) {
-    const client = await getClient();  
     try {
-      await client.connect();
-      const db = client.db(DBName);
+      await request.mongoClient.connect();
+      const db = request.mongoClient.db(request.mongoDatabaseName);
       const intentColl = db.collection('intents');
       const intent = await intentColl.findOne({
         _id: new ObjectID(request.params.id)
@@ -178,19 +169,18 @@ function initializeRoutes(){
 
       response.render('editIntent', { title: 'Edit Intent', intent });
     } catch (err) {
-      console.error(err);
+      request.logger.error(err);
     }
     finally {
-      await client.close();
+      await request.mongoClient.close();
     }
   });
 
   app.post('/editIntent', async function (request, response) {
-    console.error('Updating Intent: ', request.body.id);
-    const client = await getClient();  
+    request.logger.info('Updating Intent: ', request.body.id);  
     try {
-      await client.connect();
-      const db = client.db(DBName);
+      await request.mongoClient.connect();
+      const db = request.mongoClient.db(request.mongoDatabaseName);
       const intentColl = db.collection('intents');
       var intent = await intentColl.findOne({
         _id: new ObjectID(request.body.id)
@@ -200,19 +190,18 @@ function initializeRoutes(){
         await intentColl.updateOne({ _id: intent._id }, { $set: { name: request.body.name, responseTxt: request.body.responseTxt } });
       }
     } catch (err) {
-      console.error(err);
+      request.logger.error(err);
     }
     finally {
-      await client.close();
+      await request.mongoClient.close();
     }
     response.redirect('/');
   });
 
   app.get('/editExample/:id', async function (request, response) {
-    const client = await getClient();  
     try {
-      await client.connect();
-      const db = client.db(DBName);
+      await request.mongoClient.connect();
+      const db = request.mongoClient.db(request.mongoDatabaseName);
       const exampleColl = db.collection('examples');
       const example = await exampleColl.findOne({
         _id: new ObjectID(request.params.id)
@@ -224,19 +213,18 @@ function initializeRoutes(){
 
       response.render('editExample', { title: 'Edit Example', example });
     } catch (err) {
-      console.error(err);
+      request.logger.error(err);
     }
     finally {
-      await client.close();
+      await request.mongoClient.close();
     }
   });
 
   app.post('/editExample', async function (request, response) {
-    console.error('Updating Example: ', request.body.id);
-    const client = await getClient();  
+    request.logger.info('Updating Example: ', request.body.id);
     try {
-      await client.connect();
-      const db = client.db(DBName);
+      await request.mongoClient.connect();
+      const db = request.mongoClient.db(request.mongoDatabaseName);
       const exampleColl = db.collection('examples');
       var example = await exampleColl.findOne({
         _id: new ObjectID(request.body.id)
@@ -246,10 +234,10 @@ function initializeRoutes(){
         await exampleColl.updateOne({ _id: example._id }, { $set: { sample: request.body.sample } });
       }
     } catch (err) {
-      console.error(err);
+      request.logger.error(err);
     }
     finally {
-      await client.close();
+      await request.mongoClient.close();
     }
     response.redirect('/');
   });
@@ -258,154 +246,144 @@ function initializeRoutes(){
 
 async function getResponse(inputText, config) {
   let responseText;
-  const client = await getClient();
   try {
-    await client.connect();
-    const db = client.db(DBName);
+    await request.mongoClient.connect();
+    const db = request.mongoClient.db(request.mongoDatabaseName);
     const exampleColl = db.collection('examples');
     const examples = await exampleColl.find({}).toArray();
     const sampleSet = examples.map(example => example.sample);
     const search = FuzzySet(sampleSet);
     nearestMatch = search.get(inputText);
     if (!nearestMatch) {
-      console.error('No match found in fuzzy search');
+      request.logger.info('No match found in fuzzy search');
       return;
     }
     nearestScore = nearestMatch[0][0];
     nearestSample = nearestMatch[0][1];
-    console.error('Nearest match ', nearestScore, nearestSample);
+    request.logger.info('Nearest match ', nearestScore, nearestSample);
     let reqScore = 0.8;
     if (config.score) {
       reqScore = Number(config.score);
     }
-    console.error('Required score is ', reqScore);
+    request.logger.info('Required score is ', reqScore);
     if (nearestScore > reqScore) {
-      console.error('We have a match!');
+      request.logger.info('We have a match!');
       const selectedExample = await exampleColl.findOne({
         sample: nearestSample
       });
-      console.error('Found matching example ', selectedExample);
+      request.logger.info('Found matching example ', selectedExample);
       const intentColl = db.collection('intents');
       const nearestIntent = await intentColl.findOne({
         _id: selectedExample.intentId
       });
-      console.error('Found matching intent ', nearestIntent);
+      request.logger.info('Found matching intent ', nearestIntent);
       if (nearestIntent) {
         responseText = nearestIntent.responseTxt;
       } else {
-        console.error('No response found');
+        request.logger.info('No response found');
       }
     } else {
-      console.error('No close enough response found');
+      request.logger.info('No close enough response found');
     }
-    console.error('Responding with a ', responseText);
+    request.logger.info('Responding with a ', responseText);
   } catch (err) {
-    console.error(err);
+    request.logger.error(err);
   }
   finally {
-    await client.close();
+    await request.mongoClient.close();
   }
   return responseText;
 }
 
-async function saveMessage(message) {
-  const client = await getClient();  
+async function saveMessage(message, request) {
   try {
-    await client.connect();
-    const db = client.db(DBName);
+    await request.mongoClient.connect();
+    const db = request.mongoClient.db(request.mongoDatabaseName);
     let messagesCollection = db.collection('seenMessages');
     await messagesCollection.insertOne(message);
   } catch (err) {
-    console.error(err);
+    request.logger.error(err);
   }
   finally {
-    await client.close();
+    await request.mongoClient.close();
   }
 }
 
-// Access the parse results as request.body
-
-
-async function deleteIntent(_id) {
-  console.error('Deleting intent and examples ', _id);
-  const client = await getClient();
+async function deleteIntent(request) {
+  const _id = request.params.id;
+  request.logger.info('Deleting intent and examples ', _id);
   try {
-    await client.connect();
-    const db = client.db(DBName);
+    await request.mongoClient.connect();
+    const db = request.mongoClient.db(request.mongoDatabaseName);
     const intentCollection = db.collection('intents');
     await intentCollection.deleteOne({ _id: new ObjectID(_id) });
     const exampleCollection = db.collection('examples');
     await exampleCollection.deleteMany({ intentId: new ObjectID(_id) });
   } catch (err) {
-    console.error(err);
+    request.logger.error(err);
   }
   finally {
-    await client.close();
+    await request.mongoClient.close();
   }
 }
 
-async function deleteAllIntents() {
-  console.error('Deleting all intents...');
-  const client = await getClient();
+async function deleteAllIntents(request) {
+  request.logger.info('Deleting all intents...');
   try {
-    await client.connect();
-    const db = client.db(DBName);
+    await request.mongoClient.connect();
+    const db = request.mongoClient.db(request.mongoDatabaseName);
     const intentCollection = db.collection('intents');
     await intentCollection.deleteMany({ });
     const exampleCollection = db.collection('examples');
     await exampleCollection.deleteMany({ });
   } catch (err) {
-    console.error(err);
+    request.logger.error(err);
   }
   finally {
-    await client.close();
+    await request.mongoClient.close();
   }
 }
 
-async function deleteExample(_id) {
-  console.error('Deleting examples ', _id);
-  const client = await getClient();
+async function deleteExample(request) {
+  const _id = request.params.id;
+  request.logger.info('Deleting examples ', _id);
   try {
-    await client.connect();
-    const db = client.db(DBName);
+    await request.mongoClient.connect();
+    const db = request.mongoClient.db(request.mongoDatabaseName);
     const collection = db.collection('examples');
     await collection.deleteOne({ _id: new ObjectID(_id) });
   } catch (err) {
-    console.error(err);
+    request.logger.error(err);
   }
   finally {
-    await client.close();
+    await request.mongoClient.close();
   }
 }
 
-async function addExample(example) {
-  const client = await getClient();
+async function addExample(example, request) {
   try {
-    await client.connect();
-    const db = client.db(DBName);
+    await request.mongoClient.connect();
+    const db = request.mongoClient.db(request.mongoDatabaseName);
     const collection = db.collection('examples');
     await collection.insertOne(example);
   } catch (err) {
-    console.error(err);
+    request.logger.error(err);
   }
   finally {
-    await client.close();
+    await request.mongoClient.close();
   }
 }
 
-async function addIntent(intent) {
-  const client = await getClient();
+async function addIntent(intent, request) {
   try {
-    await client.connect();
-    const db = client.db(DBName);
+    await request.mongoClient.connect();
+    const db = request.mongoClient.db(request.mongoDatabaseName);
     const collection = db.collection('intents');
     await collection.insertOne(intent);
   } catch (err) {
-    console.error(err);
+    request.logger.error(err);
   }
   finally {
-    await client.close();
+    await request.mongoClient.close();
   }
 }
-
-//http.listen(port, () => log(`SeeSomething running on ${port}!`));
