@@ -6,10 +6,8 @@ const {
   ServerResponse,
 } = require('unit-http');
 
-require('http').ServerResponse = ServerResponse;
-require('http').IncomingMessage = IncomingMessage;
-
-const { initSDK, app, ORGANIZATION_ID } = require('vht-automations-sdk');
+const { initSDK, app, logger, ORGANIZATION_ID } = require('vht-automations-sdk');
+const applicationName = "See Something Say Something";
 const axios = require('axios');
 const FuzzySet = require('fuzzyset.js');
 const express = require("express");
@@ -17,10 +15,19 @@ const ObjectID = require('mongodb').ObjectID;
 
 app.use(express.static('public'));
 
-initSDK({applicationName: "See Something Say Something", pug_views: ["views"]})
+initSDK({applicationName, pug_views: ["views"]})
   .then(() => { 
     initializeRoutes();
-    createServer(app).listen(); // nginx unit listen entry point
+    var port = parseInt(process.env.PORT);
+    if (Number.isNaN(port)) {
+      require('http').ServerResponse = ServerResponse;
+      require('http').IncomingMessage = IncomingMessage;
+      createServer(app).listen(); // nginx unit listen entry point
+    }
+    else {
+      const http = require('http').createServer(app);
+      http.listen(port, () => logger.info(`${applicationName} running on ${port}!`));
+    }
   }
 );
 
