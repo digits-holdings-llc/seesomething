@@ -6,6 +6,13 @@ const {
   ServerResponse,
 } = require('unit-http');
 
+const port = parseInt(process.env.PORT);
+const portIsInvalid = Number.isNaN(port);
+if (portIsInvalid) {
+  require('http').ServerResponse = ServerResponse;
+  require('http').IncomingMessage = IncomingMessage;
+}
+
 const { initSDK, app, logger, ORGANIZATION_ID } = require('vht-automations-sdk');
 const applicationName = "See Something Say Something";
 const axios = require('axios');
@@ -17,11 +24,8 @@ app.use(express.static('public'));
 
 initSDK({applicationName, pug_views: ["views"]})
   .then(() => { 
-    initializeRoutes();
-    var port = parseInt(process.env.PORT);
-    if (Number.isNaN(port)) {
-      require('http').ServerResponse = ServerResponse;
-      require('http').IncomingMessage = IncomingMessage;
+    initializeRoutes();        
+    if (portIsInvalid) {
       createServer(app).listen(); // nginx unit listen entry point
     }
     else {
