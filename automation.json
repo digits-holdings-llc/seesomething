@@ -1,0 +1,20 @@
+{
+    "automation": {
+        "value": "seesomething",
+        "display": "See Something Say Something"
+    },
+    "application_type": "external",
+    "application_working_directory": "#AUTOMATIONS_PATH/automations/seesomething",
+    "application_executable_path": "seesomething-unit.js",
+    "default_environmental_variables": [
+        "MONGO_CLUSTER_URL",
+        "MONGO_DATABASE_NAME",
+        "ORGANIZATION_ID",
+        "AUTOMATION_NAME",
+        "LOG_DIRECTORY",
+        "REDIS_HOST",
+        "REDIS_PORT",
+        "REDIS_PASSWORD",
+        "REDIS_PREFIX"
+    ]
+}
