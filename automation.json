@@ -4,7 +4,7 @@
         "display": "See Something Say Something"
     },
     "application_type": "external",
-    "application_working_directory": "#AUTOMATIONS_PATH/automations/seesomething",
+    "application_working_directory": "/opt/vht-automations/automation-server/automations/seesomething",
     "application_executable_path": "seesomething-unit.js",
     "default_environmental_variables": [
         "MONGO_CLUSTER_URL",

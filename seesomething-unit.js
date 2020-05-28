@@ -55,7 +55,7 @@ function initializeRoutes(){
 
     const cleanInput = inboundMsg.msg.txt.toLowerCase().trim();
     request.logger.info('New message : ', inboundMsg.msg.src, ':', cleanInput);
-    let output = await getResponse(cleanInput, request.config);
+    let output = await getResponse(request, cleanInput, request.config);
     await saveMessage({
       from: inboundMsg.msg.src,
       to: inboundMsg.msg.dst,
@@ -64,7 +64,7 @@ function initializeRoutes(){
       sentToSlack: request.config.slack === 'TRUE',
       sentToUser: request.config.message === 'TRUE',
       createdAt: new Date()
-    });
+    }, request);
     if (request.config.slack == 'TRUE') {
       const prefixTxt = inboundMsg.msg.src + '<->' + inboundMsg.msg.dst + ': ';
       let text = prefixTxt + 'Received ' + cleanInput + ', but found no response.';
@@ -255,7 +255,7 @@ function initializeRoutes(){
 
 }
 
-async function getResponse(inputText, config) {
+async function getResponse(request, inputText, config) {
   let responseText;
   try {
     await request.mongoClient.connect();

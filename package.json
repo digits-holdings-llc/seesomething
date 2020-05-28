@@ -23,6 +23,6 @@
     "faker": "^4.1.0",
     "fuzzyset.js": "0.0.8",
     "slack": "^11.0.2",
-    "vht-automations-sdk": "^1.0.12"
+    "vht-automations-sdk": "^1.0.13"
   }
 }
