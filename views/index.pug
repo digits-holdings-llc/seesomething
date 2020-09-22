@@ -6,17 +6,15 @@ html
     title= title
   body
     .container
-      .row
-        .col-md-2
-          img(src="seesomething.jpg" height=100)
-        .col-md-8
-          h1 See Something? Say Something!
+      .row.pt-2.pb-4
+        .col-md-10
+          h2 See Something? Say Something!
         if config.password && config.password.length > 0
           .col-md-2
             a(href="/logout")
               | Logout
       .row
-        .col-md-2.offset-md-2
+        .col-md-2
           a(href="/config")
             | Configuration
         .col-md-2
@@ -144,3 +142,27 @@ html
     script(src='https://code.jquery.com/jquery-3.2.1.min.js', crossorigin='anonymous')
     script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js', integrity='sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q', crossorigin='anonymous')
     script(src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js', integrity='sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl', crossorigin='anonymous')
+    script.
+      $('a[href]').each(function(){
+          var href = $(this).attr('href');
+
+          if(href.indexOf('?') !== -1){
+              href += '&' + location.search.replace(/^\?/, '');
+          }else{
+              href += location.search;
+          }
+
+          $(this).attr('href', href);
+      });
+
+      $('form[action]').each(function(){
+          var action = $(this).attr('action');
+
+          if(action.indexOf('?') !== -1){
+              action += '&' + location.search.replace(/^\?/, '');
+          }else{
+              action += location.search;
+          }
+
+          $(this).attr('action', action);
+      });

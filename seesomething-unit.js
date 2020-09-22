@@ -19,6 +19,7 @@ const axios = require('axios');
 const FuzzySet = require('fuzzyset.js');
 const express = require("express");
 const ObjectID = require('mongodb').ObjectID;
+const qs = require('querystring');
 
 app.use(express.static('public'));
 
@@ -110,17 +111,17 @@ function initializeRoutes(){
 
   app.get('/deleteIntent/:id', function (request, response) {
     deleteIntent(request);
-    response.redirect('/');
+    response.redirect('/?' + qs.stringify(request.query));
   });
 
   app.get('/deleteAllIntents', function (request, response) {
     deleteAllIntents(request);
-    response.redirect('/');
+    response.redirect('/?' + qs.stringify(request.query));
   });
 
   app.get('/deleteExample/:id', function (request, response) {
     deleteExample(request);
-    response.redirect('/');
+    response.redirect('/?' + qs.stringify(request.query));
   });
 
 
@@ -130,11 +131,11 @@ function initializeRoutes(){
       !body.intentId ||
       body.sample.trim() == "" ||
       body.intentId.trim() == "") {
-      response.redirect('/');
+      response.redirect('/?' + qs.stringify(request.query));
     }
     else {
       addExample({ ...body, intentId: new ObjectID(body.intentId) }, request);
-      response.redirect('/');
+      response.redirect('/?' + qs.stringify(request.query));
     }
   });
 
@@ -144,11 +145,11 @@ function initializeRoutes(){
       !request.body.responseTxt ||
       request.body.name.trim() == "" ||
       request.body.responseTxt.trim() == "") {
-      response.redirect('/');
+      response.redirect('/?' + qs.stringify(request.query));
     }
     else {
       addIntent(request.body, request);
-      response.redirect('/');
+      response.redirect('/?' + qs.stringify(request.query));
     }
   });
 
@@ -180,7 +181,7 @@ function initializeRoutes(){
       });
 
       if (!intent) {
-        response.redirect('/');
+        response.redirect('/?' + qs.stringify(request.query));
       }
 
       response.render('editIntent', { title: 'Edit Intent', intent });
@@ -211,7 +212,7 @@ function initializeRoutes(){
     finally {
       await request.mongoClient.close();
     }
-    response.redirect('/');
+    response.redirect('/?' + qs.stringify(request.query));
   });
 
   app.get('/editExample/:id', async function (request, response) {
@@ -224,7 +225,7 @@ function initializeRoutes(){
       });
 
       if (!example) {
-        response.redirect('/');
+        response.redirect('/?' + qs.stringify(request.query));
       }
 
       response.render('editExample', { title: 'Edit Example', example });
@@ -255,7 +256,7 @@ function initializeRoutes(){
     finally {
       await request.mongoClient.close();
     }
-    response.redirect('/');
+    response.redirect('/?' + qs.stringify(request.query));
   });
 
 }
