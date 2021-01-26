@@ -19,10 +19,10 @@
   },
   "homepage": "https://github.com/digits-holdings-llc/seesomething#readme",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "faker": "^4.1.0",
     "fuzzyset.js": "0.0.8",
     "slack": "^11.0.2",
-    "vht-automations-sdk": "^1.1.2"
+    "vht-automations-sdk": "^1.1.3"
   }
 }
