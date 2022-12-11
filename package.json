@@ -20,7 +20,7 @@
   "homepage": "https://github.com/digits-holdings-llc/seesomething#readme",
   "dependencies": {
     "axios": "^0.19.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "faker": "^4.1.0",
     "fuzzyset.js": "0.0.8",
     "greenbot-sdk": "1.0.18",
